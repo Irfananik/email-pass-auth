@@ -2,7 +2,7 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
-import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } from "firebase/auth"
+import { createUserWithEmailAndPassword, getAuth, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth"
 import app from './firebase.init';
 import { useState } from 'react';
 
@@ -41,20 +41,19 @@ function App() {
 
     if (regstart) {
       signInWithEmailAndPassword(auth, email, password)
-      .then(resutl => {
-        const user = resutl.user
-        console.log(user)
-      })
-      .catch(err => {
-        setError(err)
-        console.log(err)
-      })
+        .then(resutl => {
+          const user = resutl.user
+          console.log(user)
+        })
+        .catch(error => {
+          console.error(error)
+          setError(error.message)
+        })
     } else {
       createUserWithEmailAndPassword(auth, email, password)
         .then(resutl => {
           const user = resutl.user
-          setEmail('')
-          setPass('')
+          emailVarifications()
           console.log(user)
         })
         .catch(err => {
@@ -63,6 +62,24 @@ function App() {
         })
     }
     event.preventDefault()
+  }
+
+  const emailVarifications = () => {
+    sendEmailVerification(auth.currentUser)
+      .then(() => {
+        console.log('mail send for varification')
+      })
+  }
+
+  const handleResetPass = () => {
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        console.log('mail send for reset')
+      })
+      .cath(err => {
+        setError(err.message)
+        console.log(err)
+      })
   }
 
   return (
@@ -88,6 +105,8 @@ function App() {
           <Form.Group className="mb-3" controlId="formBasicCheckbox">
             <Form.Check onChange={handleRegstart} type="checkbox" label="Already an account" />
           </Form.Group>
+          <Button onClick={handleResetPass} variant="link">Reset Password</Button>
+          <br />
           <Button variant="primary" type="submit">
             {regstart ? "Login" : "Register"}
           </Button>
